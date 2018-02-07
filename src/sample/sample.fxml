@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.text.*?>
+<?import java.lang.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<TabPane prefHeight="700.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.Controller">
+   <tabs>
+      <Tab closable="false" text="Systab">
+         <content>
+            <BorderPane>
+                <center>
+                    <TextArea fx:id="textAreaReg" editable="false">
+                        <font>
+                            <Font size="19.0" />
+                        </font>
+                        <BorderPane.margin>
+                            <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+                        </BorderPane.margin>
+                        <padding>
+                            <Insets bottom="3.0" left="3.0" right="3.0" top="3.0" />
+                        </padding>
+                    </TextArea>
+                </center>
+                <left>
+                    <VBox spacing="10.0" BorderPane.alignment="CENTER">
+                        <children>
+                            <Label alignment="CENTER" contentDisplay="CENTER" text="Write" VBox.vgrow="ALWAYS">
+                                <font>
+                                    <Font name="System Bold" size="21.0" />
+                                </font>
+                            </Label>
+                        <GridPane hgap="5.0" layoutX="10.0" layoutY="181.0" vgap="5.0" VBox.vgrow="ALWAYS">
+                           <children>
+                              <Label text="Topic" />
+                              <Label text="Topic Index" GridPane.rowIndex="2" />
+                              <Label text="Item" GridPane.rowIndex="4" />
+                              <TextField fx:id="topicWriteReg" GridPane.columnIndex="1" />
+                              <TextField fx:id="itemWriteReg" layoutX="10.0" layoutY="98.0" prefHeight="0.0" prefWidth="100.0" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                              <Label layoutX="10.0" layoutY="227.0" text="Item Index" GridPane.rowIndex="6" />
+                              <Button fx:id="searchWriteReg" alignment="CENTER" contentDisplay="CENTER" layoutX="112.0" layoutY="178.0" mnemonicParsing="false" onAction="#writeReg" text="Change" GridPane.rowIndex="8">
+                                 <padding>
+                                    <Insets bottom="6.0" left="6.0" right="6.0" top="6.0" />
+                                 </padding>
+                              </Button>
+                              <ComboBox fx:id="savedDynWriteReg" GridPane.columnIndex="1" GridPane.rowIndex="8" />
+                              <ComboBox fx:id="topicIndexWriteReg" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                              <ComboBox fx:id="itemIndexWriteReg" GridPane.columnIndex="1" GridPane.rowIndex="6" />
+                              <Label text="Value" GridPane.rowIndex="7" />
+                              <TextField fx:id="valueReg" GridPane.columnIndex="1" GridPane.rowIndex="7" />
+                           </children>
+                           <columnConstraints>
+                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                           </columnConstraints>
+                           <padding>
+                              <Insets bottom="3.0" left="3.0" right="3.0" top="3.0" />
+                           </padding>
+                           <rowConstraints>
+                              <RowConstraints vgrow="SOMETIMES" />
+                              <RowConstraints vgrow="SOMETIMES" />
+                              <RowConstraints vgrow="SOMETIMES" />
+                              <RowConstraints minHeight="0.0" vgrow="SOMETIMES" />
+                              <RowConstraints minHeight="0.0" vgrow="SOMETIMES" />
+                              <RowConstraints minHeight="0.0" vgrow="SOMETIMES" />
+                              <RowConstraints minHeight="6.0" vgrow="SOMETIMES" />
+                              <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+                              <RowConstraints fillHeight="false" minHeight="10.0" valignment="TOP" vgrow="ALWAYS" />
+                           </rowConstraints>
+                        </GridPane>
+                            <Region VBox.vgrow="ALWAYS" />
+                            <Label alignment="CENTER" contentDisplay="CENTER" text="Read" VBox.vgrow="ALWAYS">
+                                <font>
+                                    <Font name="System Bold" size="20.0" />
+                                </font>
+                            </Label>
+                            <GridPane hgap="5.0" vgap="5.0" VBox.vgrow="ALWAYS">
+                                <columnConstraints>
+                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                </columnConstraints>
+                                <rowConstraints>
+                                    <RowConstraints vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="0.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="2.0" vgrow="SOMETIMES" />
+                                    <RowConstraints fillHeight="false" minHeight="0.0" valignment="TOP" vgrow="ALWAYS" />
+                                    <RowConstraints fillHeight="false" minHeight="0.0" valignment="CENTER" vgrow="ALWAYS" />
+                                </rowConstraints>
+                                <children>
+                                    <Label text="Topic" />
+                                    <Label text="Topic Index" GridPane.rowIndex="1" />
+                                    <Label text="Item" GridPane.rowIndex="2" />
+                                    <TextField fx:id="topicReadReg" GridPane.columnIndex="1" />
+                                    <TextField fx:id="itemReadReg" layoutX="10.0" layoutY="98.0" prefHeight="0.0" prefWidth="100.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                    <Label layoutX="10.0" layoutY="227.0" text="Item Index" GridPane.rowIndex="3" />
+                                    <Button fx:id="searchReadReg" alignment="CENTER" contentDisplay="CENTER" layoutX="112.0" layoutY="178.0" mnemonicParsing="false" onAction="#printReg" text="Search" GridPane.rowIndex="4">
+                                        <padding>
+                                            <Insets bottom="6.0" left="6.0" right="6.0" top="6.0" />
+                                        </padding>
+                                    </Button>
+                                    <ComboBox fx:id="savedDynReadReg" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                                    <ComboBox fx:id="topicIndexReadReg" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                    <ComboBox fx:id="itemIndexReadReg" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                                </children>
+                                <padding>
+                                    <Insets bottom="3.0" left="3.0" right="3.0" top="3.0" />
+                                </padding>
+                            </GridPane>
+                        </children>
+                     <padding>
+                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                     </padding>
+                    </VBox>
+                </left>
+            </BorderPane>
+         </content>
+      </Tab>
+      <Tab closable="false" text="IO">
+         <content>
+            <BorderPane>
+               <center>
+                  <TextArea fx:id="textAreaIO" editable="false">
+                     <font>
+                        <Font size="19.0" />
+                     </font>
+                     <padding>
+                        <Insets bottom="3.0" left="3.0" right="3.0" top="3.0" />
+                     </padding>
+                     <BorderPane.margin>
+                        <Insets bottom="2.0" left="2.0" right="2.0" top="2.0" />
+                     </BorderPane.margin>
+                  </TextArea>
+               </center>
+               <left>
+                  <VBox spacing="10.0" BorderPane.alignment="CENTER">
+                     <children>
+                        <Label alignment="CENTER" contentDisplay="CENTER" text="Write">
+                           <font>
+                              <Font name="System Bold" size="21.0" />
+                           </font>
+                        </Label>
+                        <GridPane hgap="5.0" vgap="5.0" VBox.vgrow="ALWAYS">
+                           <children>
+                              <Label alignment="CENTER" contentDisplay="CENTER" text="Topic" GridPane.hgrow="ALWAYS" GridPane.vgrow="ALWAYS">
+                                 <padding>
+                                    <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                                 </padding></Label>
+                              <TextField fx:id="topicWriteIO" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.vgrow="ALWAYS" />
+                              <Button fx:id="searchWriteIO" alignment="CENTER" contentDisplay="CENTER" layoutX="112.0" layoutY="178.0" mnemonicParsing="false" onAction="#writeIO" text="Change" GridPane.rowIndex="2">
+                                 <padding>
+                                    <Insets bottom="6.0" left="6.0" right="6.0" top="6.0" />
+                                 </padding>
+                              </Button>
+                              <Label text="Value" GridPane.rowIndex="1" />
+                              <TextField fx:id="valueIO" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                           </children>
+                           <columnConstraints>
+                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                           </columnConstraints>
+                           <padding>
+                              <Insets bottom="3.0" left="3.0" right="3.0" top="3.0" />
+                           </padding>
+                           <rowConstraints>
+                              <RowConstraints vgrow="ALWAYS" />
+                              <RowConstraints minHeight="0.0" vgrow="ALWAYS" />
+                              <RowConstraints vgrow="ALWAYS" />
+                           </rowConstraints>
+                        </GridPane>
+                        <Region VBox.vgrow="ALWAYS" />
+                        <Label alignment="CENTER" contentDisplay="CENTER" text="Read">
+                           <font>
+                              <Font name="System Bold" size="21.0" />
+                           </font>
+                        </Label>
+                        <GridPane hgap="5.0" vgap="5.0" VBox.vgrow="ALWAYS">
+                           <children>
+                              <Label text="Topic" />
+                              <TextField fx:id="topicReadIO" GridPane.columnIndex="1" />
+                              <Button fx:id="searchReadIO" alignment="CENTER" contentDisplay="CENTER" layoutX="112.0" layoutY="178.0" mnemonicParsing="false" onAction="#printIO" text="Search" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1">
+                                 <padding>
+                                    <Insets bottom="6.0" left="6.0" right="6.0" top="6.0" />
+                                 </padding>
+                              </Button>
+                           </children>
+                           <columnConstraints>
+                              <ColumnConstraints hgrow="SOMETIMES" />
+                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                           </columnConstraints>
+                           <padding>
+                              <Insets bottom="3.0" left="3.0" right="3.0" top="3.0" />
+                           </padding>
+                           <rowConstraints>
+                              <RowConstraints vgrow="ALWAYS" />
+                              <RowConstraints valignment="CENTER" vgrow="ALWAYS" />
+                           </rowConstraints>
+                        </GridPane>
+                     </children>
+                     <padding>
+                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                     </padding>
+                  </VBox>
+               </left>
+            </BorderPane>
+         </content>
+      </Tab>
+      <Tab closable="false" text="Read Reg &amp; IO">
+         <content>
+            <SplitPane dividerPositions="0.5058333333333334">
+              <items>
+                <AnchorPane>
+                     <children>
+                        <TextArea fx:id="textAreaReg2" editable="false" layoutX="-7.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="-7.0" AnchorPane.rightAnchor="7.0" AnchorPane.topAnchor="0.0">
+                           <font>
+                              <Font size="19.0" />
+                           </font>
+                           <padding>
+                              <Insets bottom="3.0" left="3.0" right="3.0" top="3.0" />
+                           </padding>
+                        </TextArea>
+                     </children>
+                  </AnchorPane>
+                <AnchorPane>
+                     <children>
+                        <TextArea fx:id="textAreaIO2" editable="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                           <font>
+                              <Font size="19.0" />
+                           </font>
+                           <padding>
+                              <Insets bottom="3.0" left="3.0" right="3.0" top="3.0" />
+                           </padding>
+                        </TextArea>
+                     </children>
+                  </AnchorPane>
+              </items>
+            </SplitPane>
+         </content>
+      </Tab>
+      <Tab closable="false" text="IO Flow">
+         <content>
+            <BorderPane>
+               <center>
+                  <TextArea fx:id="textAreaIOFLow" editable="false" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+                     <padding>
+                        <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
+                     </padding>
+                  </TextArea>
+               </center>
+               <top>
+                  <HBox spacing="10.0" BorderPane.alignment="CENTER">
+                     <children>
+                        <ToggleButton fx:id="toggleIOFlow" mnemonicParsing="false" onMouseClicked="#startIOFlowToggle" text="Continuously" HBox.hgrow="ALWAYS" />
+                        <ToggleButton fx:id="toggleIOFlowAuto" mnemonicParsing="false" onMouseClicked="#startIOFlow" text="Step Verify" />
+                     </children>
+                     <padding>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                     </padding>
+                  </HBox>
+               </top>
+            </BorderPane>
+         </content>
+      </Tab>
+      <Tab closable="false" text="IO Control">
+         <content>
+            <BorderPane prefHeight="200.0" prefWidth="200.0">
+               <left>
+                  <TreeView fx:id="treeViewIO" prefHeight="200.0" prefWidth="200.0" showRoot="false" BorderPane.alignment="CENTER" />
+               </left>
+            </BorderPane>
+         </content>
+      </Tab>
+      <Tab closable="false" text="Reg Control">
+         <content>
+            <BorderPane prefHeight="200.0" prefWidth="200.0">
+               <left>
+                  <TreeView fx:id="treeViewReg" prefHeight="200.0" prefWidth="200.0" showRoot="false" BorderPane.alignment="CENTER" />
+               </left>
+            </BorderPane>
+         </content>
+      </Tab>
+      <Tab closable="false" text="Test Util">
+         <content>
+            <BorderPane prefHeight="200.0" prefWidth="200.0">
+               <left>
+                  <VBox>
+                     <children>
+                        <GridPane alignment="CENTER" hgap="10.0" vgap="10.0" BorderPane.alignment="CENTER">
+                          <columnConstraints>
+                            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                          </columnConstraints>
+                          <rowConstraints>
+                            <RowConstraints fillHeight="false" valignment="CENTER" vgrow="ALWAYS" />
+                            <RowConstraints fillHeight="false" valignment="CENTER" vgrow="ALWAYS" />
+                            <RowConstraints fillHeight="false" valignment="CENTER" vgrow="ALWAYS" />
+                          </rowConstraints>
+                           <children>
+                              <ToggleButton fx:id="toggleWrite" mnemonicParsing="false" text="Change Write" GridPane.hgrow="ALWAYS" GridPane.vgrow="ALWAYS" />
+                              <ComboBox fx:id="comboBoxSteps" editable="true" prefWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                              <Label alignment="CENTER" contentDisplay="CENTER" text="Steps" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.vgrow="ALWAYS" />
+                           </children>
+                           <padding>
+                              <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                           </padding>
+                        </GridPane>
+                     </children>
+                  </VBox>
+               </left>
+            </BorderPane>
+         </content>
+      </Tab>
+   </tabs>
+</TabPane>

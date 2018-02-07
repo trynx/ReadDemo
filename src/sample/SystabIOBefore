@@ -1,0 +1,563 @@
+package sample;
+
+
+import java.io.*;
+import java.lang.reflect.Array;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.concurrent.*;
+
+
+public class SystabIO {
+
+    private final static String FILE_PATH_IO = "..\\Systab"; // Better at the folder of the app at - ReadDemo\runtime\bin\
+    private final static String FILE_EXE_IO = "systabio.exe";
+    // TODO - Order the folders
+    private String folderName = "";
+
+    private final static String UTIL_FOLDER = "UtilFiles\\";
+    private final static String FILE_LIST_IO_FRESH = UTIL_FOLDER +"FilteredsystabIOTablet7900.txt";
+    private final static String FILE_LIST_IO_CURR = "IOCurrent.txt";
+    private final static String FILE_LIST_IO_TEMP = "IOTemp.txt";
+    private final static String FILE_LIST_IO_LOG = "IOLog.txt";
+    // TODO - Add the folder name (open array , append and save)
+    private final static String [] FILE_LIST_IO_STEPS = {UTIL_FOLDER + "Step1.txt", UTIL_FOLDER + "Step2.txt", UTIL_FOLDER + "Step3.txt", UTIL_FOLDER + "Step4.txt", UTIL_FOLDER + "Step5.txt"};
+
+    private final static int NUM_STEPS = FILE_LIST_IO_STEPS.length;
+    private static int numCurStep = 0;
+
+    private final static int NUM_THREAD = 5; // Runtime.getRuntime().availableProcessors()
+
+    private Util util = new Util();
+
+
+    /** All read methohds START **/
+    /**
+     * Read the whole systab IO in a specific parameter (topic)
+     */
+    String readSystabIO(String topicName, int topicIndex, String folderName) {
+        // Order of parameter to read : GET, topicName, topicIndex, SYSTAB_SOURCE.MASTER
+        // Validation
+        String [] proParameters = {FILE_EXE_IO, "GET", topicName, Integer.toString(topicIndex), "SYSTAB_SOURCE.MASTER"};
+
+        if (util.validationNotNull(proParameters)) { // Validate everything -> true = no null
+
+            // Build the process
+            ProcessBuilder pb = new ProcessBuilder(proParameters); // GET & SYSTAB_SOURCE.MASTER - needed to use readerIO
+
+//            pb.directory(new File(FILE_PATH_IO)); Check different folder later
+            try {
+                Process p = pb.start();
+
+                BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+
+
+                StringBuilder lineText = new StringBuilder();
+                String line = br.readLine();
+                // Start reading in loop until there isn't any more
+                while (line != null) {
+                    lineText.append(line);
+                    line = br.readLine();
+                    if (!br.ready()) {
+                        br.close(); // Maybe not ?
+                        break;
+                    }
+                }
+
+                String userInput = topicName + " " + topicIndex ;
+                String machineInput = lineText.toString();
+
+                util.writeFile(machineInput + " " + topicName, folderName, "SystabIO");
+                return "User request : "  + userInput + "\n"
+                        + "Answer : " + machineInput;
+
+
+            }catch(IOException e){
+                e.printStackTrace();
+                System.out.println("Process IO Error");
+            }
+            return "No data";
+        }
+        return "Nothing";
+    }
+
+    String readSystabIOTest(String input){
+        threadReadIO(input); // TEST
+//        return input;
+        return threadReadIO(input); // TEST
+    }
+    /** All read methohds END **/
+
+    /** All write methohds START **/
+    boolean writeSystabIO(String topicName, int topicIndex, String value){
+            // Order of parameter to write : SET, topicName, topicIndex, SYSTAB_SOURCE.MASTER, value
+            // Validation
+            String [] proParameters = {FILE_EXE_IO,"SET", topicName, Integer.toString(topicIndex), "SYSTAB_SOURCE.MASTER", value}; // The order of parameters are important for Process Builder!!
+
+            if (util.validationNotNull(proParameters)){ // Validate everything -> true = no null
+
+                BufferedWriter bw = null; // Outside of try/catch scope so it can be used in finally scope
+                // Build the process
+                ProcessBuilder pb = new ProcessBuilder(proParameters);
+                pb.directory(new File(FILE_PATH_IO)); // Directory of the FILE_EXE_REG
+                try {
+                    Process p = pb.start();
+                    bw = new BufferedWriter(new OutputStreamWriter(p.getOutputStream()));
+
+                    // Verification vars - TEST
+                    String alive1 = "notAlive";
+                    String alive = "notAlive";
+
+                    if(p.isAlive()) alive1 = "alive"; // TEST
+
+                    bw.write(value);
+                    bw.flush();
+
+                    if(p.isAlive()) alive = "alive"; // TEST
+                    return true; // Succeed to write
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    if(bw != null)
+                        try {
+                            bw.close(); // if it couldn't be close at the try block because an exception
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                }
+            }
+            return false; // Failed to write
+        }
+    /** All write methohds END **/
+
+    /** Loop through all IO **/
+    String readAll() {
+        // All files to write to / read from
+        File listIOFresh = new File(FILE_LIST_IO_FRESH); // Only used when there still isn't a current file - template of list for IO
+        File listIOCurr = new File(folderName + FILE_LIST_IO_CURR); // The file which the values and list are taken and compare with input from IO
+        File listIOTemp = new File(folderName + FILE_LIST_IO_TEMP); // While runtime it will write the values in this file
+        File listIOLog = new File(folderName + FILE_LIST_IO_LOG); // Write only the values which are different
+
+        BufferedReader IOBr = null;
+        BufferedReader fileBr = null;
+        BufferedWriter fileBw = null;
+        BufferedWriter fileBwLog = null; // TODO - Different thread later
+
+        StringBuilder resultUser = new StringBuilder(); // Append the end result to later return it to controller and show to the user
+
+        if (!listIOTemp.exists()) {
+            try {
+                fileBw = new BufferedWriter(new FileWriter(listIOTemp));
+                fileBwLog = new BufferedWriter(new FileWriter(listIOLog, true));
+                if (!listIOCurr.exists()) { // Change file if the current still doesn't exist
+                    fileBr = new BufferedReader(new FileReader(listIOFresh)); // Maybe better way ?
+                } else {
+                    fileBr = new BufferedReader(new FileReader(listIOCurr)); // Add exception for only file not found ?
+                }
+
+//                   int temp = 0; // TEST - dummy data
+                String fileData = fileBr.readLine(); // Start reading
+
+                ExecutorService executor = Executors.newFixedThreadPool(NUM_THREAD); // Changed to a global variable for readability
+                String topicName = "";
+
+                while (fileData != null) {
+                    System.out.println(fileData); // TEST
+
+                    String[] topicDetails = fileData.trim().split(" "); // [0] = topic name , [1] = value
+                    topicName = topicDetails[0];
+                    StringBuilder lineText = new StringBuilder();
+              /*      // Fill list with the number of needed FutureTasks
+                    if(futureList.size() < NUM_THREAD) {
+                        for (int i = 0; i < NUM_THREAD; i++) {
+                            futureList.add(new FutureTask<String>(new CallSystabIo(topicName)));
+                        }
+                    }*/
+
+
+                    // Check weather the max number of thread in the pool was open -> true it will get() the first thread result and open place for a new thread , so on until all the list is done
+
+                    // TODO - USE CompletionService (check website : https://stackoverflow.com/questions/19348248/waiting-on-a-list-of-future#19348417)
+
+
+                    // Order of parameter to read : GET, fileData, topicIndex, SYSTAB_SOURCE.MASTER
+           /*         String[] proParameters = {FILE_EXE_IO, "GET", topicDetails[0], "0", "SYSTAB_SOURCE.MASTER"};
+
+                    // Build the process
+                    ProcessBuilder pb = new ProcessBuilder(proParameters); // GET & SYSTAB_SOURCE.MASTER - needed implement to read from readerIO
+//           pb.directory(new File(FILE_PATH_IO)); Check different folder later
+                    Process p = pb.start();
+
+                    IOBr = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                    StringBuilder lineText = new StringBuilder(); // Maybe only string ?
+                    String line = IOBr.readLine();
+                    // Start reading in loop until there isn't any more
+                    while (line != null) {
+                        lineText.append(line); // Maybe don't need ?
+                        line = IOBr.readLine(); // Only read one line
+                        if (!IOBr.ready()) {
+                            IOBr.close(); // Maybe not ?
+                            break;
+                        }
+                    } */// TODO - CONTINUE HERE - All the highlighted lines goes to Futuretask and return the value which the read got.
+
+                    // TODO - Without if , only queue the request for process
+
+
+                    String machineInput = lineText.toString(); // Save the value from the reading - Readability
+                    String endResult = topicDetails[0] + " " + machineInput; // IO name , value - better readability
+
+                    System.out.println(endResult);
+                    fileBw.write(endResult);
+                    fileBw.newLine();
+
+                    if (topicDetails.length > 1 && !machineInput.equalsIgnoreCase(topicDetails[1])) { // Better check about array? Maybe both to use integer?
+                        String timeStamp = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss").format(new Date());
+
+                        String logResult = timeStamp + " " + endResult; // The result which the log file will save & the one which will show the user
+
+                        resultUser.append(logResult).append("\n"); // Append the log result to later show to user
+                        // Writes data into IOLog file - only those which aren't equal to the value of inputIO(from press)
+                        fileBwLog.write(logResult);// Name , value
+                        fileBwLog.newLine();
+                        // TODO - Method to send the different data
+                    }
+
+                    System.out.println("Result : " + machineInput);
+
+
+                    fileData = fileBr.readLine(); // Next line
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.out.println("Process IO Error");
+                return "IO Exception" + "\n";
+
+            } finally { // Maybe something better later on ?
+
+                if (fileBw != null) try {
+                    fileBw.close(); // Close to finish the stream and write everything
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                if (IOBr != null) try {
+                    IOBr.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                if (fileBr != null) try {
+                    fileBr.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                if (fileBwLog != null) try {
+                    fileBwLog.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            if (listIOCurr.exists()) listIOCurr.delete();
+            listIOTemp.renameTo(listIOCurr);
+//            System.out.println("Done");
+
+            return resultUser.toString();
+        }
+        /*}
+        return "";
+    }*/
+        return "ouch"; // TEST just something
+    }
+
+
+    String readAllSteps(){
+
+        if(numCurStep >= NUM_STEPS) return "complete"; // Finished all the steps - stop the automation check
+
+        // All files to write to / read from
+        File listIOCurr = new File(folderName + FILE_LIST_IO_CURR); // The file which the values and list are taken and compare with input from IO
+        File listIOTemp = new File(folderName + FILE_LIST_IO_TEMP); // While runtime it will write the values in this file
+        File listIOLog = new File(folderName + FILE_LIST_IO_LOG); // Write only the values which are different
+        File listIOStep = new File(FILE_LIST_IO_STEPS[numCurStep]); // -1 -> index start at 0 , length start at 1
+
+        BufferedReader IOBr = null;
+        BufferedReader fileBr = null;
+        BufferedWriter fileBw = null;
+        BufferedWriter fileBwLog = null;
+
+        StringBuilder resultUser = new StringBuilder(); // Append the end result to later return it to controller and show to the user
+        boolean stepComplete;
+        // Loop through all the steps
+//            int test = 0 ; // TEST
+            stepComplete = false;
+            while (!stepComplete){
+//                System.out.println(++test); // TEST
+                if (!listIOTemp.exists()) {
+                    try {
+                        fileBw = new BufferedWriter(new FileWriter(listIOTemp));
+                        fileBwLog = new BufferedWriter(new FileWriter(listIOLog, true));
+
+                        if (!listIOCurr.exists()) { // Change file if the current still doesn't exist
+                            fileBr = new BufferedReader(new FileReader(listIOStep)); // Maybe better way ?
+                        } else {
+                            fileBr = new BufferedReader(new FileReader(listIOCurr)); // Add exception for only file not found ?
+                        }
+
+//                   int temp = 0; // TEST - dummy data
+                        String fileData = fileBr.readLine(); // Start reading
+
+                        while (fileData != null) {
+//                            System.out.println(fileData); // TEST
+
+                            String[] topicDetails = fileData.trim().split(" "); // [0] = topic name , [1] = value
+
+                            // Order of parameter to read : GET, fileData, topicIndex, SYSTAB_SOURCE.MASTER
+                            String[] proParameters = {FILE_EXE_IO, "GET", topicDetails[0], "0", "SYSTAB_SOURCE.MASTER"};
+
+                            // Build the process
+                            ProcessBuilder pb = new ProcessBuilder(proParameters); // GET & SYSTAB_SOURCE.MASTER - needed implement to read from readerIO
+//           pb.directory(new File(FILE_PATH_IO)); Check different folder later
+                            Process p = pb.start();
+
+                            IOBr = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                            StringBuilder lineText = new StringBuilder(); // Maybe only string ?
+                            String line = IOBr.readLine();
+                            // Start reading in loop until there isn't any more
+                            while (line != null) {
+                                lineText.append(line); // Maybe don't need ?
+                                line = IOBr.readLine(); // Only read one line
+                                if (!IOBr.ready()) {
+                                    IOBr.close(); // Maybe not ?
+                                    break;
+                                }
+                            }
+
+//                            String machineInput = "2"; //  TEST
+                            String machineInput = lineText.toString(); // Save the value from the reading - Readability
+                            String endResult = topicDetails[0] + " " + machineInput; // IO name , value - better readability
+
+                            System.out.println(endResult);
+                            fileBw.write(endResult);
+                            fileBw.newLine();
+
+                            if (topicDetails.length > 1 && !machineInput.equalsIgnoreCase(topicDetails[1])) { // Better check about array? Maybe both to use integer?
+                                String timeStamp = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss").format(new Date());
+
+                                String logResult = timeStamp + " " + endResult; // The result which the log file will save & the one which will show the user
+
+                                resultUser.append(logResult).append("\n"); // Append the log result to later show to save at the log file
+                                // Writes data into IOLog file - only those which aren't equal to the value of inputIO(from press)
+                                fileBwLog.write(logResult);// Name , value
+                                fileBwLog.newLine();
+                                // TODO - Method to send the different data
+                                numCurStep++; // Iterate to next step
+                                stepComplete = true;
+                            }
+
+                            System.out.println("Result : " + machineInput);
+
+
+                            fileData = fileBr.readLine(); // Next line
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        System.out.println("Process IO Error");
+                        return "IO Exceptio" + "\n";
+
+                    } finally { // Maybe something better later on ?
+
+                        if (fileBw != null) try {
+                            fileBw.close(); // Close to finish the stream and write everything
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        if (IOBr != null) try {
+                            IOBr.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        if (fileBr != null) try {
+                            fileBr.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        if (fileBwLog != null) try {
+                            fileBwLog.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    if (listIOCurr.exists()) listIOCurr.delete();
+                    if (listIOTemp.exists()) listIOTemp.renameTo(listIOCurr);
+
+                }
+            }
+             listIOCurr.delete(); // Clean up
+             listIOTemp.delete(); // Clean up
+            return "Step " + numCurStep + " finish, result : " + resultUser.toString();
+
+    }
+
+    // TODO - continue here
+    // TODO - Thread to write and open process
+    private String threadReadIO(String fileData){
+
+
+            /* Thread thread = new Thread(){
+                 private boolean shutdown = false;
+                 @Override
+                 public void run() {
+                        // All files to write to / read from
+                        File listIOTemp = new File(FILE_LIST_IO_TEMP); // While runtime it will write the values in this file
+                        File listIOLog = new File(FILE_LIST_IO_LOG); // Write only the values which are different
+
+                        BufferedReader IOBr = null;
+                        BufferedWriter fileBw = null;
+                        BufferedWriter fileBwLog = null; // TODO - Different thread later
+
+                        StringBuilder resultUser = new StringBuilder(); // Append the end result to later return it to controller and show to the user
+
+                        try {
+                            while (!shutdown) {
+                                fileBw = new BufferedWriter(new FileWriter(listIOTemp));
+                                fileBwLog = new BufferedWriter(new FileWriter(listIOLog, true));
+
+                                String[] topicDetails = fileData.trim().split(" "); // [0] = topic name , [1] = value
+
+                                // Order of parameter to read : GET, fileData, topicIndex, SYSTAB_SOURCE.MASTER
+                                String[] proParameters = {FILE_EXE_IO, "GET", topicDetails[0], "0", "SYSTAB_SOURCE.MASTER"};
+
+                                // Build the process
+                                ProcessBuilder pb = new ProcessBuilder(proParameters); // GET & SYSTAB_SOURCE.MASTER - needed implement to read from readerIO
+//                       pb.directory(new File(FILE_PATH_IO)); Check different folder later
+
+                                Process p = pb.start();
+
+                                IOBr = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                                StringBuilder lineText = new StringBuilder(); // Maybe only string ?
+
+                                String line = IOBr.readLine();
+                                // Start reading in loop until there isn't any more
+                                while (line != null) {
+                                    lineText.append(line); // Maybe don't need ?
+                                    line = IOBr.readLine(); // Only read one line
+                                    if (!IOBr.ready()) {
+                                        IOBr.close(); // Maybe not ?
+                                        break;
+                                    }
+                                }
+                                String machineInput = lineText.toString(); // Save the value from the reading - Readability
+                                String endResult = topicDetails[0] + " " + machineInput; // IO name , value - better readability
+                                synchronized (this) {
+                                    fileBw.write(endResult);
+                                    fileBw.newLine();
+
+                                    if (topicDetails.length > 1 && !machineInput.equalsIgnoreCase(topicDetails[1])) { // Better check about array? Maybe both to use integer?
+                                        String timeStamp = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss").format(new Date());
+
+                                        String logResult = timeStamp + " " + endResult; // The result which the log file will save & the one which will show the user
+
+                                        resultUser.append(logResult).append("\n"); // Append the log result to later show to user
+                                        // Writes data into IOLog file - only those which aren't equal to the value of inputIO(from press)
+                                        fileBwLog.write(logResult);// Name , value
+                                        fileBwLog.newLine();
+                                        // TODO - Method to send the different data
+                                    }
+                                }
+
+                                System.out.println("Result : " + machineInput);
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        } finally { // Closing phase
+                            if (fileBw != null) try {
+                                fileBw.close(); // Close to finish the stream and write everything
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                            if (IOBr != null) try {
+                                IOBr.close();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                            if (fileBwLog != null) try {
+                                fileBwLog.close();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                            shutdown();
+                        }
+
+                 }
+
+                 private void shutdown(){
+                     shutdown = true;
+                 }
+             };
+             thread.start();
+*/
+            // Threadpool -  CallSystabIo of all that needed to read
+
+
+        return "";
+    }
+
+    private class CallSystabIo implements Callable<String> {
+
+        private String topicName = "";
+
+        CallSystabIo(String topicName){
+            this.topicName = topicName; // Save the topic
+        }
+
+        @Override
+        public String call() throws Exception {
+
+            // Order of parameter to read : GET, fileData, topicIndex, SYSTAB_SOURCE.MASTER
+            String[] proParameters = {FILE_EXE_IO, "GET", topicName, "0", "SYSTAB_SOURCE.MASTER"};
+
+            // Build the process
+            ProcessBuilder pb = new ProcessBuilder(proParameters); // GET & SYSTAB_SOURCE.MASTER - needed implement to read from readerIO
+//           pb.directory(new File(FILE_PATH_IO)); Check different folder later
+            Process p = pb.start();
+
+            Thread.sleep(1000); // TEST
+            StringBuilder lineText = new StringBuilder(); // Maybe only string ?
+            /*try(BufferedReader IOBr = new BufferedReader(new InputStreamReader(p.getInputStream()))){ // Try with resource (auto close)
+
+                String line = IOBr.readLine();
+                // Start reading in loop until there isn't any more
+                while (line != null) {
+                    lineText.append(line); // Maybe don't need ?
+                    line = IOBr.readLine(); // Only read one line
+                    if (!IOBr.ready()) {
+                        IOBr.close(); // Maybe not ?
+                        break;
+                    }
+
+                }
+            } catch (IOException e){
+                e.printStackTrace();
+            }*/
+            lineText.append(topicName); // TEST
+            return lineText.toString();
+        }
+
+    }
+
+    String getFileListIoFresh() {
+        return FILE_LIST_IO_FRESH;
+    }
+
+    // Save the folder name
+    void setSystabIOFolderName(String name){
+        this.folderName = name + "\\"; // Append the \\ to get inside the folder
+    }
+
+}
+
