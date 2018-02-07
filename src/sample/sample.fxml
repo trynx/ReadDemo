@@ -212,7 +212,7 @@
               <items>
                 <AnchorPane>
                      <children>
-                        <TextArea fx:id="textAreaReg2" editable="false" layoutX="-7.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="-7.0" AnchorPane.rightAnchor="7.0" AnchorPane.topAnchor="0.0">
+                        <TextArea fx:id="textAreaReg2" editable="false" layoutX="-7.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="-7.0" AnchorPane.rightAnchor="7.0" AnchorPane.topAnchor="0.0">
                            <font>
                               <Font size="19.0" />
                            </font>
@@ -224,7 +224,7 @@
                   </AnchorPane>
                 <AnchorPane>
                      <children>
-                        <TextArea fx:id="textAreaIO2" editable="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                        <TextArea fx:id="textAreaIO2" editable="false" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                            <font>
                               <Font size="19.0" />
                            </font>
@@ -238,21 +238,31 @@
             </SplitPane>
          </content>
       </Tab>
-      <Tab closable="false" text="IO Flow">
+      <Tab closable="false" text="Flow">
          <content>
             <BorderPane>
                <center>
-                  <TextArea fx:id="textAreaIOFLow" editable="false" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
-                     <padding>
-                        <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
-                     </padding>
-                  </TextArea>
+                  <SplitPane dividerPositions="0.5">
+                     <items>
+                        <TextArea fx:id="textAreaIOFLow" editable="false" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+                           <padding>
+                              <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
+                           </padding>
+                        </TextArea>
+                        <TextArea fx:id="textAreaRegFLow" prefHeight="200.0" prefWidth="200.0">
+                           <padding>
+                              <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
+                           </padding>
+                        </TextArea>
+                     </items>
+                  </SplitPane>
                </center>
                <top>
                   <HBox spacing="10.0" BorderPane.alignment="CENTER">
                      <children>
-                        <ToggleButton fx:id="toggleIOFlow" mnemonicParsing="false" onMouseClicked="#startIOFlowToggle" text="Continuously" HBox.hgrow="ALWAYS" />
-                        <ToggleButton fx:id="toggleIOFlowAuto" mnemonicParsing="false" onMouseClicked="#startIOFlow" text="Step Verify" />
+                        <ToggleButton fx:id="toggleIOFlow" mnemonicParsing="false" onMouseClicked="#startIOFlowToggle" text="IOFlow" HBox.hgrow="ALWAYS" />
+                        <ToggleButton fx:id="toggleIOFlowAuto" mnemonicParsing="false" onMouseClicked="#startIOFlow" text="IO Step Verify" />
+                        <ToggleButton fx:id="toggleRegFlow" mnemonicParsing="false" onMouseClicked="#startRegFlowToggle" text="Regular Flow" />
                      </children>
                      <padding>
                         <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
