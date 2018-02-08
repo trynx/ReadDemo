@@ -59,10 +59,15 @@ public class Controller implements Initializable {
     public TreeView treeViewReg;
     public TreeView<String> treeViewIO; // TODO - Continue with the treeview
 
-    // Flow - IO
+    // - Flow -
+    // IO
     public ToggleButton toggleIOFlow;
     public ToggleButton toggleIOFlowAuto;
     public TextArea textAreaIOFLow;
+    // Regular
+    public ToggleButton toggleRegFlow;
+    public TextArea textAreaRegFLow;
+
 
     // Tests
     public ComboBox comboBoxSteps;
@@ -259,7 +264,7 @@ public class Controller implements Initializable {
 
 
 
-
+    // Read IO at once
     public void startIOFlowToggle(){
 
         // Anonymous class - Service works at different thread - ONLY STARTED FROM FX THREAD
@@ -277,7 +282,7 @@ public class Controller implements Initializable {
                         // Loops until the client un-toggled the button
                         while(toggleIOFlow.isSelected()) {
                             resultUser = systabIO.readAll();// Read the process
-                            if(resultUser.contains("IO Exception")) break;// When there is an exception it will stop the read(flow)
+                            if(resultUser.contains("Read error")) break;// When there is an exception it will stop the read(flow)
                             textAreaIOFLow.appendText(resultUser); // Show result to client
 
 //                          resultUser = Integer.toString(++res); // TEST
@@ -300,6 +305,7 @@ public class Controller implements Initializable {
     }
 
     // TODO - Continue here !! - RegFlowToggle
+    // Read reg at once
     public void startRegFlowToggle(){
 
         // Anonymous class - Service works at different thread - ONLY STARTED FROM FX THREAD
@@ -315,10 +321,10 @@ public class Controller implements Initializable {
 
                         String resultUser = "";
                         // Loops until the client un-toggled the button
-                        while(toggleIOFlow.isSelected()) {
-                            resultUser = systabIO.readAll();// Read the process
-                            if(resultUser.contains("IO Exception")) break;// When there is an exception it will stop the read(flow)
-                            textAreaIOFLow.appendText(resultUser); // Show result to client
+                        while(toggleRegFlow.isSelected()) {
+                            resultUser = systabReg.readAll();// Read the process
+                            if(resultUser.contains("Read error")) break;// When there is an exception it will stop the read(flow)
+                            textAreaRegFLow.appendText("No systab found to read"); // Show result to client
 
 //                          resultUser = Integer.toString(++res); // TEST
 //                          System.out.println(resultUser); // TEST
@@ -328,14 +334,14 @@ public class Controller implements Initializable {
                 };
             }
         };
-        if(toggleIOFlow.isSelected()) { // When the client toggle the button , service will start
+        if(toggleRegFlow.isSelected()) { // When the client toggle the button , service will start
             toggleService.reset();
             toggleService.start();
         }
 
         toggleService.setOnSucceeded(e -> {
             String result = toggleService.getValue();
-            textAreaIOFLow.appendText(result + " out\n");
+            textAreaRegFLow.appendText(result + " out\n");
         });
     }
 }

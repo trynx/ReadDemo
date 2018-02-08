@@ -14,12 +14,13 @@ public class SystabIO {
     private String folderName = "";
 
     private final static String UTIL_FOLDER = "UtilFiles\\";
+
     private final static String FILE_LIST_IO_FRESH = UTIL_FOLDER +"FilteredsystabIOTablet7900.txt";
     private final static String FILE_LIST_IO_CURR = "IOCurrent.txt";
     private final static String FILE_LIST_IO_TEMP = "IOTemp.txt";
     private final static String FILE_LIST_IO_LOG = "IOLog.txt";
     // TODO - Add the folder name (open array , append and save)
-    private final static String [] FILE_LIST_IO_STEPS = {UTIL_FOLDER + "Step1IO.txt", UTIL_FOLDER + "Step2IO.txt", UTIL_FOLDER + "Step3IO.txt", UTIL_FOLDER + "Step4IO.txt", UTIL_FOLDER + "Step5IO.txt"};
+    private final static String [] FILE_LIST_IO_STEPS = {UTIL_FOLDER + /* TODO - IOStep1.. */ "Step1IO.txt", UTIL_FOLDER + "Step2IO.txt", UTIL_FOLDER + "Step3IO.txt", UTIL_FOLDER + "Step4IO.txt", UTIL_FOLDER + "Step5IO.txt"};
 
     private final static int NUM_STEPS = FILE_LIST_IO_STEPS.length;
     private static int numCurStep = 0;
@@ -154,7 +155,8 @@ public class SystabIO {
 
                 String fileData = fileBr.readLine(); // Start reading
 
-                ExecutorService executor = Executors.newFixedThreadPool(util.getNumThread()); // Changed to a global variable for readability
+                ExecutorService executor = Executors.newFixedThreadPool(util.getNumThread());
+
                 CompletionService<String> completionService = new ExecutorCompletionService<>(executor); // Initialize  the completion service
 
                 String topicValue = "";
@@ -213,7 +215,7 @@ public class SystabIO {
             } catch (IOException e) {
                 e.printStackTrace();
                 System.out.println("Process IO Error");
-                return "IO Exception" + "\n";
+                return "Read error" + "\n"; // Don't change , this return stops the flow !
 
             } finally { // Maybe something better later on ?
 
@@ -252,6 +254,9 @@ public class SystabIO {
     String readAllSteps(){
 
         if(numCurStep >= NUM_STEPS) return "complete"; // Finished all the steps - stop the automation check
+        // TODO - Make the steps file - IOStep n - read a number of files at the same time (depend on the n), through a loop it will read only those
+        // TODO Continue - when n steps are done , will save (or delete) from a list and won't read them anymore
+        // TODO Continue - it will first check that all the steps exists (1-n , no missing , if there is a missing step will throw a window alert of which step is missing)
 
         // All files to write to / read from
         File listIOCurr = new File(folderName + FILE_LIST_IO_CURR); // The file which the values and list are taken and compare with input from IO

@@ -173,7 +173,7 @@ public class SystabReg {
             } catch (IOException e) {
                 e.printStackTrace();
                 System.out.println("Process IO Error");
-                return "IO Exception" + "\n";
+                return "Read error" + "\n"; // Don't change , this return stops the flow !
 
             } finally { // Maybe something better later on ?
 
@@ -260,7 +260,6 @@ public class SystabReg {
 
 
     /** All write methohds START **/
-    // TODO - continue here - write method
     boolean writeSystabReg(String topicName, String topicIndex, String itemName, String itemIndex, String value, String dynamicSaved){
         // Order of parameter to write : topicName, topicIndex,  itemName, itemIndex, value, dynamicSaved
         // Validation

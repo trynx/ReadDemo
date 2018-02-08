@@ -15,7 +15,6 @@ public class SystabIO {
 
     private final static String FILE_PATH_IO = "..\\Systab"; // Better at the folder of the app at - ReadDemo\runtime\bin\
     private final static String FILE_EXE_IO = "systabio.exe";
-    // TODO - Order the folders
     private String folderName = "";
 
     private final static String UTIL_FOLDER = "UtilFiles\\";
@@ -23,7 +22,6 @@ public class SystabIO {
     private final static String FILE_LIST_IO_CURR = "IOCurrent.txt";
     private final static String FILE_LIST_IO_TEMP = "IOTemp.txt";
     private final static String FILE_LIST_IO_LOG = "IOLog.txt";
-    // TODO - Add the folder name (open array , append and save)
     private final static String [] FILE_LIST_IO_STEPS = {UTIL_FOLDER + "Step1.txt", UTIL_FOLDER + "Step2.txt", UTIL_FOLDER + "Step3.txt", UTIL_FOLDER + "Step4.txt", UTIL_FOLDER + "Step5.txt"};
 
     private final static int NUM_STEPS = FILE_LIST_IO_STEPS.length;
@@ -145,7 +143,7 @@ public class SystabIO {
         BufferedReader IOBr = null;
         BufferedReader fileBr = null;
         BufferedWriter fileBw = null;
-        BufferedWriter fileBwLog = null; // TODO - Different thread later
+        BufferedWriter fileBwLog = null;
 
         StringBuilder resultUser = new StringBuilder(); // Append the end result to later return it to controller and show to the user
 
@@ -181,7 +179,6 @@ public class SystabIO {
 
                     // Check weather the max number of thread in the pool was open -> true it will get() the first thread result and open place for a new thread , so on until all the list is done
 
-                    // TODO - USE CompletionService (check website : https://stackoverflow.com/questions/19348248/waiting-on-a-list-of-future#19348417)
 
 
                     // Order of parameter to read : GET, fileData, topicIndex, SYSTAB_SOURCE.MASTER
@@ -203,9 +200,8 @@ public class SystabIO {
                             IOBr.close(); // Maybe not ?
                             break;
                         }
-                    } */// TODO - CONTINUE HERE - All the highlighted lines goes to Futuretask and return the value which the read got.
+                    } */
 
-                    // TODO - Without if , only queue the request for process
 
 
                     String machineInput = lineText.toString(); // Save the value from the reading - Readability
@@ -224,7 +220,6 @@ public class SystabIO {
                         // Writes data into IOLog file - only those which aren't equal to the value of inputIO(from press)
                         fileBwLog.write(logResult);// Name , value
                         fileBwLog.newLine();
-                        // TODO - Method to send the different data
                     }
 
                     System.out.println("Result : " + machineInput);
@@ -353,7 +348,6 @@ public class SystabIO {
                                 // Writes data into IOLog file - only those which aren't equal to the value of inputIO(from press)
                                 fileBwLog.write(logResult);// Name , value
                                 fileBwLog.newLine();
-                                // TODO - Method to send the different data
                                 numCurStep++; // Iterate to next step
                                 stepComplete = true;
                             }
@@ -403,8 +397,6 @@ public class SystabIO {
 
     }
 
-    // TODO - continue here
-    // TODO - Thread to write and open process
     private String threadReadIO(String fileData){
 
 
@@ -418,7 +410,7 @@ public class SystabIO {
 
                         BufferedReader IOBr = null;
                         BufferedWriter fileBw = null;
-                        BufferedWriter fileBwLog = null; // TODO - Different thread later
+                        BufferedWriter fileBwLog = null;
 
                         StringBuilder resultUser = new StringBuilder(); // Append the end result to later return it to controller and show to the user
 
@@ -466,7 +458,6 @@ public class SystabIO {
                                         // Writes data into IOLog file - only those which aren't equal to the value of inputIO(from press)
                                         fileBwLog.write(logResult);// Name , value
                                         fileBwLog.newLine();
-                                        // TODO - Method to send the different data
                                     }
                                 }
 
