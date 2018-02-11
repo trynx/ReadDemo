@@ -16,7 +16,9 @@ public class Controller implements Initializable {
 
 
     // Other Vars
-    private String pressNum = ""; // TODO - KNOW WHICH MACHINE IT IS AND THEN USE THE FILE DEPEND ON THE NUMBER
+    // TODO - KNOW WHICH MACHINE IT IS AND THEN USE THE FILE DEPEND ON THE NUMBER
+    // TODO - Add a combobox of the last 5-10 machines that were enter before
+    private String pressNum = "";
 
     // Classes
     private SystabReg systabReg = new SystabReg();
@@ -78,7 +80,7 @@ public class Controller implements Initializable {
     @Override // What to do when the program start
     public void initialize(URL location, ResourceBundle resources) {
         pressNum = PressNumWindow.display("Press Number", "Please insert press number");
-        if (!pressNum.isEmpty()) { // TODO - Check how to stop the user if the press number is empty
+        if (!pressNum.isEmpty()) { // TODO - Check how to stop the user if the press number is empty or not a machine number(should save the list of valid machine numbers in program which could be update)
             //Systab Regular - insert into combo box
             // Read
             savedDynReadReg.getItems().clear();
@@ -109,7 +111,13 @@ public class Controller implements Initializable {
             textAreaIO2.textProperty().bind(textAreaIO.textProperty());
 
             // Create folder for the press
-            util.createFolder(pressNum);
+
+            try {
+                util.createFolder(pressNum);
+            } catch (IOException e) {
+                e.printStackTrace();
+                // TODO - Alert the user that it couldn't copy the todo file
+            }
 
             // TODO - Tree view - multiple search
             // Tree Control - START

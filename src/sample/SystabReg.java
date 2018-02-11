@@ -12,7 +12,7 @@ public class SystabReg {
     private final static String FILE_EXE_READER_REG = "systabreader.exe";
     private final static String FILE_EXE_WRITER_REG = "systabwriter.exe";
 
-    private final static String UTIL_FOLDER = "UtilFiles\\";
+    private final static String UTIL_FOLDER = "..\\UtilFiles\\";
 
     private final static String FILE_LIST_REG_FRESH = UTIL_FOLDER +"systabRegList7900.txt";
     private final static String FILE_LIST_REG_CURR = "RegCurrent.txt";
