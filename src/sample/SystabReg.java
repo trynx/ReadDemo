@@ -207,12 +207,176 @@ public class SystabReg {
         return "No File";
     }
 
+    // Read all the steps of IO
+    String readAll(String pressNum){
+        // All files to write to / read from
+        File listIOLog = new File(folderName + FILE_LIST_IO_LOG); // Write only the values which are different
+        File listTodo = new File(folderName + "Todosteps.txt"); // This file have all the steps that are needed
+
+
+        BufferedReader fileBr = null;
+        BufferedReader fileTodoBw = null;
+        BufferedWriter fileBw = null; // Temp to used in many places
+        BufferedWriter fileBwLog = null;
+
+
+        StringBuilder resultUser = new StringBuilder(); // Append the end result to later return it to controller and show to the user
+
+        if (!reading) { // TODO - When the program is close - delete listIOTemp
+            reading = true; // Started to read the files
+            try {
+                fileTodoBw = new BufferedReader(new FileReader(listTodo));
+                fileBwLog = new BufferedWriter(new FileWriter(listIOLog, true));
+            /*    if (!listIOCurr.exists()) { // Change file if the current still doesn't exist
+                    fileBr = new BufferedReader(new FileReader(listIOFresh)); // Maybe better way ?
+                } else {
+                    fileBr = new BufferedReader(new FileReader(listIOCurr)); // Add exception for only file not found ?
+                }*/
+
+//                String fileData = fileBr.readLine(); // Start reading
+                String fileTodo = fileTodoBw.readLine(); // Start reading
+
+                ExecutorService executor = Executors.newFixedThreadPool(util.getNumThread());
+
+                CompletionService<String> completionService = new ExecutorCompletionService<>(executor); // Initialize  the completion service
+
+                String topicValue = "";
+                String topicName = "";
+                StringBuilder results = new StringBuilder();
+                int counterRequest = 0; // Counter to know how many completion service where open
+                Map<String, String> topicMap = new HashMap<>();
+                List<String> todoList = new ArrayList<>();
+                List<String> stepList = new ArrayList<>(); // Save all the steps (Step1, Step2 ...)
+
+                // File read  all todo list and save in an arraylist
+                while (fileTodo != null) { // TODO - Add check if the number isn't missing" (1,2,3,[missing],5 ..)
+
+                    todoList.add(fileTodo);
+                    fileTodo = fileTodoBw.readLine(); // Next line
+                } // File read end
+
+                // Save in a list all the steps of IO
+                for(String steps : todoList){ // Maybe write a method in util/interface as it will be needed for Reg
+                    String[] stepName = steps.trim().split(" "); // [0] = step number , [1] = step title
+
+                    stepList.add(stepName[0].trim());
+                }
+
+
+                for(String step : stepList){
+
+                    String stepFile ="StepIO\\" + step + "IO.text"; // Check if it create the folder if doesn't exist
+
+                    File stepFileCurr = new File(pressNum + "StepIO\\Curr" + step + "IO.text"); // FolderName\SystabIO\CurrStepxIO.txt - File with value of current moment & name of systabIO
+                    File stepFileFresh = new File(pressNum + stepFile); // FolderName\SystabIO\StepxIO.txt - File without value , only the name of the systabIO
+
+
+                    if (!stepFileCurr.exists()) { // Change file if the current still doesn't exist
+                        fileBr = new BufferedReader(new FileReader(stepFileFresh)); // Maybe better way ?
+                    } else {
+                        fileBr = new BufferedReader(new FileReader(stepFileCurr)); // Add exception for only file not found ?
+                    }
+//                    String[] stepName = step.trim().split(" "); // [0] = step number , [1] = step name
+                    String fileData = fileBr.readLine(); // Start reading
+
+                    while (fileData != null) {
+
+                        String[] topicDetails = fileData.trim().split(" "); // [0] = topic name , [1] = value
+                        topicName = topicDetails[0]; // Readability
+                        if (topicDetails.length > 1) { // -> there is a value
+                            topicValue = topicDetails[1]; // Readability , verify only here if it really exist
+                            topicMap.put(topicName,topicValue); // Save the topic name and value as my temp
+                        } else {
+                            topicMap.put(topicName,""); // No topic value
+                        }
+
+                        // Start futuretask completion service -> Start process to read the SystabIO
+                        completionService.submit(new SystabIO.CallSystabReg(topicName, step)); // TEST
+                        counterRequest++;
+                        fileData = fileBr.readLine(); // Next line
+                    } // No more topics to read from , continue to the next step
+
+                    stepFileCurr.delete(); // Delete it as all the data was read and saved , for later create a new current file with the new values
+                }
+
+
+                // Take results from process
+                for(int i = 0 ; i < counterRequest ; i++){ // Loop through the results -> counterRequests have the number of how many request were submit to completion service
+                    try {
+                        Future<String> resultFuture = completionService.take(); // Wait for one completed task
+                        results.append(resultFuture.get()); // Get a completed task , results = topicName + new Value
+
+                        String [] endResultArr = results.toString().trim().split(" "); // [0] = step number . [1] = topic name , [2] = value
+                        String endResult = endResultArr[1] + " " + endResultArr[2];
+
+
+                        // Writes data into IOLog file - only those which aren't equal to the value of inputIO(from press)
+                        if (!endResultArr[2].equals(topicMap.get(endResultArr[1]))){ // Check if the new value and old value are equal , not equal -> show to user and save in log
+                            String timeStamp = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss").format(new Date());
+
+                            // TODO - Change the values to On / Off
+                            String logResult = timeStamp + " " + endResultArr[0] + " " + endResult; // The result which the log file will save & the one which will show the user
+
+                            resultUser.append(logResult).append("\n"); // Append the log result to later show to the user
+
+                            fileBwLog.write(logResult);
+                            fileBwLog.newLine();
+                        }
+
+                        // Create the new current file with new values
+                        File stepFileCurr = new File(pressNum + "StepIO\\Curr" + endResultArr[0] + "IO.text"); // FolderName\SystabIO\CurrStepxIO.txt - File with value of current moment & name of systabIO
+
+                        fileBw = new BufferedWriter(new FileWriter(stepFileCurr));
+                        fileBw.write(endResult);
+                        fileBw.newLine();
+
+                    } catch (InterruptedException | ExecutionException e) {
+                        e.printStackTrace();
+                        return "CompletionService of SystabIO process Exception";
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.out.println("Process IO Error");
+                return "Read error IO" + "\n"; // Don't change , this return stops the flow !
+
+            } finally { // Maybe something better later on ?
+                reading = false; // Finish to read all
+                if (fileBw != null) try {
+                    fileBw.close(); // Close to finish the stream and write everything
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                if (fileBr != null) try {
+                    fileBr.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                if (fileTodoBw != null) try {
+                    fileBr.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                if (fileBwLog != null) try {
+                    fileBwLog.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            return resultUser.toString();
+        }
+        return "No File";
+    }
+
     private class CallSystabReg implements Callable<String> {
 
         private String topicName = "";
         private String topicIndex = "";
         private String itemName = "";
         private String itemIndex = "";
+        private String stepNumber = "";
+
 
         private String fullName = topicName + " " + topicIndex + " " + itemName + " " + itemIndex;
 
@@ -223,6 +387,15 @@ public class SystabReg {
             this.itemIndex = itemIndex; // Save the topic
         }
 
+        CallSystabReg(String topicName, String topicIndex, String itemName, String itemIndex, String stepNumber) {
+            this.topicName = topicName; // Save the topic
+            this.topicIndex = topicIndex; // Save the topic
+            this.itemName = itemName; // Save the topic
+            this.itemIndex = itemIndex; // Save the topic
+            this.stepNumber = stepNumber; // Save the step number
+        }
+
+        // TODO - Continue here
         @Override
         public String call() throws Exception {
             // Order of parameter to write : topicName, topicIndex,  itemName, itemIndex, value, dynamicSaved
@@ -235,7 +408,11 @@ public class SystabReg {
                 Process p = pb.start();
 
                 StringBuilder lineText = new StringBuilder(); // Maybe only string ?
-                lineText.append(fullName).append(" "); // Append the name of topic and leave a space to append the new value
+                if(stepNumber.isEmpty()){
+                    lineText.append(fullName).append(" "); // Append the name of topic and leave a space to append the new value
+                } else {
+                    lineText.append(stepNumber).append(" ").append(fullName).append(" "); // Append the step number with the name of topic and leave a space to append the new value
+                }
                 try (BufferedReader IOBr = new BufferedReader(new InputStreamReader(p.getInputStream()))) { // Try with resource (auto close)
 
                     String line = IOBr.readLine();

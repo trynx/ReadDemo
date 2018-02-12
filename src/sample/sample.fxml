@@ -263,6 +263,7 @@
                         <ToggleButton fx:id="toggleIOFlow" mnemonicParsing="false" onMouseClicked="#startIOFlowToggle" text="IOFlow" HBox.hgrow="ALWAYS" />
                         <ToggleButton fx:id="toggleIOFlowAuto" mnemonicParsing="false" onMouseClicked="#startIOFlow" text="IO Step Verify" />
                         <ToggleButton fx:id="toggleRegFlow" mnemonicParsing="false" onMouseClicked="#startRegFlowToggle" text="Regular Flow" />
+                        <ToggleButton fx:id="toggleStepsFlow" mnemonicParsing="false" onMouseClicked="#startStepsFlowToggle" text="Steps Flow" />
                      </children>
                      <padding>
                         <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />

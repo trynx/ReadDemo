@@ -70,6 +70,8 @@ public class Controller implements Initializable {
     public ToggleButton toggleRegFlow;
     public TextArea textAreaRegFLow;
 
+    public ToggleButton toggleStepsFlow;
+
 
     // Tests
     public ComboBox comboBoxSteps;
@@ -351,5 +353,47 @@ public class Controller implements Initializable {
             String result = toggleService.getValue();
             textAreaRegFLow.appendText(result + " out\n");
         });
+    }
+
+    public void startStepsFlowToggle(){
+        // Anonymous class - Service works at different thread - ONLY STARTED FROM FX THREAD
+        Service<String> toggleService = new Service<>() {
+
+            @Override
+            protected Task<String> createTask() {
+                return new Task<>(){
+
+                    @Override
+                    protected String call() throws Exception {
+//                        int res = 0; // TEST
+
+                        String resultUserIO = "";
+                        String resultUserReg = "";
+                        // Loops until the client un-toggled the button
+                        while(toggleStepsFlow.isSelected()) {
+                            resultUserIO = "IO " + systabIO.readAll(pressNum);// Read the process
+                            resultUserReg = "Reg " + systabReg.readAll(pressNum);// Read the process
+                            if(resultUserIO.contains("Read error") || resultUserReg.contains("Read error")) break;// When there is an exception it will stop the read(flow)
+                            textAreaRegFLow.appendText("No systab found to read"); // Show result to client
+                            textAreaIOFLow.appendText("No systabIO found to read"); // Show result to client
+
+//                          resultUser = Integer.toString(++res); // TEST
+//                          System.out.println(resultUser); // TEST
+                        }
+                        return resultUserIO + resultUserReg;
+                    }
+                };
+            }
+        };
+        if(toggleStepsFlow.isSelected()) { // When the client toggle the button , service will start
+            toggleService.reset();
+            toggleService.start();
+        }
+
+        toggleService.setOnSucceeded(e -> {
+            String result = toggleService.getValue();
+            textAreaRegFLow.appendText(result + " out\n");
+        });
+
     }
 }

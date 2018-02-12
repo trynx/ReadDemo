@@ -19,6 +19,11 @@ public class SystabIO {
     private final static String FILE_LIST_IO_CURR = "IOCurrent.txt";
     private final static String FILE_LIST_IO_TEMP = "IOTemp.txt";
     private final static String FILE_LIST_IO_LOG = "IOLog.txt";
+    private final static String SYSTAB_STEPIO_FOLDER = "StepIO\\";
+    private final static String FILE_LIST_STEPS_COMPLETED = SYSTAB_STEPIO_FOLDER + "CompletedIO.txt";
+
+    private final static int STEPS_TO_READ = 10; // How many steps to read at once
+
     // TODO - Add the folder name (open array , append and save)
     private final static String [] FILE_LIST_IO_STEPS = {UTIL_FOLDER + /* TODO - IOStep1.. */ "Step1IO.txt", UTIL_FOLDER + "Step2IO.txt", UTIL_FOLDER + "Step3IO.txt", UTIL_FOLDER + "Step4IO.txt", UTIL_FOLDER + "Step5IO.txt"};
 
@@ -103,16 +108,9 @@ public class SystabIO {
                 Process p = pb.start();
                 bw = new BufferedWriter(new OutputStreamWriter(p.getOutputStream()));
 
-                // Verification vars - TEST
-                String alive1 = "notAlive";
-                String alive = "notAlive";
-
-                if(p.isAlive()) alive1 = "alive"; // TEST
-
                 bw.write(value);
                 bw.flush();
 
-                if(p.isAlive()) alive = "alive"; // TEST
                 return true; // Succeed to write
 
             } catch (IOException e) {
@@ -251,34 +249,36 @@ public class SystabIO {
         return "No File";
     }
 
-    // Read all the steps of
-    String readAll(String pressNum){
+    // Read all the steps of IO
+    String readAll(String pressNum){ // TODO - Make a chooseable way for which steps to check . Each step contains a series of checks that the user will do , only verify those checks
         // All files to write to / read from
         File listIOLog = new File(folderName + FILE_LIST_IO_LOG); // Write only the values which are different
         File listTodo = new File(folderName + "Todosteps.txt"); // This file have all the steps that are needed
+        File completedStep = new File( folderName + FILE_LIST_STEPS_COMPLETED);
 
 
         BufferedReader fileBr = null;
-        BufferedReader fileTodoBw = null;
+        BufferedReader fileTodoBr = null;
+        BufferedReader fileCompletedBr = null;
+        BufferedWriter fileTodoBw = null;
         BufferedWriter fileBw = null; // Temp to used in many places
         BufferedWriter fileBwLog = null;
+        BufferedWriter fileCompletedBw = null;
 
-
+        String completed = "Completed";
         StringBuilder resultUser = new StringBuilder(); // Append the end result to later return it to controller and show to the user
 
-        if (!reading) { // TODO - When the program is close - delete listIOTemp
+        if (!reading) {
             reading = true; // Started to read the files
             try {
-                fileTodoBw = new BufferedReader(new FileReader(listTodo));
+                fileTodoBr = new BufferedReader(new FileReader(listTodo));
+                fileCompletedBr = new BufferedReader(new FileReader(completedStep));
+                fileTodoBw = new BufferedWriter(new FileWriter(listTodo));
                 fileBwLog = new BufferedWriter(new FileWriter(listIOLog, true));
-            /*    if (!listIOCurr.exists()) { // Change file if the current still doesn't exist
-                    fileBr = new BufferedReader(new FileReader(listIOFresh)); // Maybe better way ?
-                } else {
-                    fileBr = new BufferedReader(new FileReader(listIOCurr)); // Add exception for only file not found ?
-                }*/
+                fileCompletedBw = new BufferedWriter(new FileWriter(completedStep, true));
 
-//                String fileData = fileBr.readLine(); // Start reading
-                String fileTodo = fileTodoBw.readLine(); // Start reading
+                String fileTodo = fileTodoBr.readLine(); // Start reading
+                String fileCompleted = fileCompletedBr.readLine(); // Start reading
 
                 ExecutorService executor = Executors.newFixedThreadPool(util.getNumThread());
 
@@ -288,31 +288,46 @@ public class SystabIO {
                 String topicName = "";
                 StringBuilder results = new StringBuilder();
                 int counterRequest = 0; // Counter to know how many completion service where open
+                int topicCounter = 0;
                 Map<String, String> topicMap = new HashMap<>();
+                Map<String, Integer> stepMap = new HashMap<>();
+
+                List<String> completedList = new ArrayList<>(); // List of completed steps
                 List<String> todoList = new ArrayList<>();
                 List<String> stepList = new ArrayList<>(); // Save all the steps (Step1, Step2 ...)
 
-                // File read  all todo list and save in an arraylist
-                while (fileTodo != null) { // TODO - Add check if the number isn't missing" (1,2,3,[missing],5 ..)
+                // File read all the completed steps and save
+                while (fileCompleted != null && fileCompleted.contains(completed)) { // While the there is next line and the line contains completed
+
+                    completedList.add(fileCompleted);
+                    fileCompleted = fileCompletedBr.readLine(); // Next line
+
+                } // File read end
+
+
+                // Read the amount of steps needed and add them to the todolist, then save in an arraylist
+                for (int stepsReading = 0 ; fileTodo != null && stepsReading < STEPS_TO_READ ; stepsReading++) { // TODO - Add check if the number isn't missing" (1,2,3,[missing],5 ..)
 
                     todoList.add(fileTodo);
-                    fileTodo = fileTodoBw.readLine(); // Next line
+                    fileTodo = fileTodoBr.readLine(); // Next line
                 } // File read end
 
                 // Save in a list all the steps of IO
                 for(String steps : todoList){ // Maybe write a method in util/interface as it will be needed for Reg
-                    String[] stepName = steps.trim().split(" "); // [0] = step number , [1] = step title
-
-                    stepList.add(stepName[0].trim());
+                    String[] stepName = steps.trim().split(" "); // [0] = step number , [1] = step title , [2] = completed / not
+                    String step = stepName[0] + " " + stepName[1];
+                    stepList.add(step);
                 }
 
 
                 for(String step : stepList){
 
-                    String stepFile ="StepIO\\" + step + "IO.text"; // Check if it create the folder if doesn't exist
+                    String[] splitStep = step.trim().split(" "); // [0] = step number , [1] = step title
+                    String newStep = splitStep[0];
+                    String stepFile = SYSTAB_STEPIO_FOLDER + newStep + "IO.text"; // Check if it create the folder if doesn't exist
 
-                    File stepFileCurr = new File(pressNum + "StepIO\\Curr" + step + "IO.text"); // FolderName\SystabIO\CurrStepxIO.txt - File with value of current moment & name of systabIO
-                    File stepFileFresh = new File(pressNum + stepFile); // FolderName\SystabIO\StepxIO.txt - File without value , only the name of the systabIO
+                    File stepFileCurr = new File(pressNum + SYSTAB_STEPIO_FOLDER + "Curr" + newStep + "IO.text"); // FolderName\StepIO\CurrStepxIO.txt - File with value of current moment & name of systabIO
+                    File stepFileFresh = new File(pressNum + stepFile); // FolderName\StepIO\StepxIO.txt - File without value , only the name of the systabIO
 
 
                     if (!stepFileCurr.exists()) { // Change file if the current still doesn't exist
@@ -325,7 +340,10 @@ public class SystabIO {
 
                     while (fileData != null) {
 
-                        String[] topicDetails = fileData.trim().split(" "); // [0] = topic name , [1] = value
+                        String[] topicDetails = fileData.trim().split(" "); // [0] = topic name , [1] = value , [2] = completed(only when completed)
+
+                        if(topicDetails.length > 2 && topicDetails[2].equals(completed)) continue; // The current topic is already completed and don't need to check again -> continue to the next topic
+
                         topicName = topicDetails[0]; // Readability
                         if (topicDetails.length > 1) { // -> there is a value
                             topicValue = topicDetails[1]; // Readability , verify only here if it really exist
@@ -335,8 +353,10 @@ public class SystabIO {
                         }
 
                         // Start futuretask completion service -> Start process to read the SystabIO
-                        completionService.submit(new CallSystabIo(topicName, step)); // TEST
+                        completionService.submit(new CallSystabIo(topicName, newStep)); // TEST
                         counterRequest++;
+                        stepMap.put(newStep, ++topicCounter); // Save the step with the counter of how many topics there is
+
                         fileData = fileBr.readLine(); // Next line
                     } // No more topics to read from , continue to the next step
 
@@ -351,38 +371,75 @@ public class SystabIO {
                         results.append(resultFuture.get()); // Get a completed task , results = topicName + new Value
 
                         String [] endResultArr = results.toString().trim().split(" "); // [0] = step number . [1] = topic name , [2] = value
-                        String endResult = endResultArr[1] + " " + endResultArr[2];
+                        String stepNumber = endResultArr[0];
+                        String newTopicName = endResultArr[1];
+                        String newValue = endResultArr[2];
+                        String endResult = newTopicName + " " + newValue;
+
+                        // Create the new current file with new values
+                        File stepFileCurr = new File(pressNum + SYSTAB_STEPIO_FOLDER + "Curr" + stepNumber + "IO.text"); // FolderName\StepIO\CurrStepxIO.txt - File with value of current moment & name of systabIO
 
 
-                        // Writes data into IOLog file - only those which aren't equal to the value of inputIO(from press)
+                        // Writes data into IOLog file - only those which aren't equal to the value of inputIO(from press) -> Done current topic check
                         if (!endResultArr[2].equals(topicMap.get(endResultArr[1]))){ // Check if the new value and old value are equal , not equal -> show to user and save in log
                             String timeStamp = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss").format(new Date());
 
                             // TODO - Change the values to On / Off
-                            String logResult = timeStamp + " " + endResultArr[0] + " " + endResult; // The result which the log file will save & the one which will show the user
+                            String logResult = timeStamp + " " + stepNumber + " " + endResult; // The result which the log file will save & the one which will show the user
 
                             resultUser.append(logResult).append("\n"); // Append the log result to later show to the user
 
                             fileBwLog.write(logResult);
                             fileBwLog.newLine();
+
+                            fileBw = new BufferedWriter(new FileWriter(stepFileCurr));
+                            fileBw.write(endResult + " " + completed);
+                            fileBw.newLine();
+
+                            int remainTopics = stepMap.get(stepNumber) - 1; // This topic is done -> one less topic in the step
+                            if(remainTopics == 0){ // When the step don't have any more topics to check , it will remove from the step list and add to the completed step list
+                                stepList.remove(stepNumber);
+                                completedList.add(stepNumber);
+                            }
+                            stepMap.put(stepNumber, remainTopics);
+
+                        } else { // When the topic isn't complete
+                            fileBw = new BufferedWriter(new FileWriter(stepFileCurr));
+                            fileBw.write(endResult);
+                            fileBw.newLine();
                         }
 
-                        // Create the new current file with new values
-                        File stepFileCurr = new File(pressNum + "StepIO\\Curr" + endResultArr[0] + "IO.text"); // FolderName\SystabIO\CurrStepxIO.txt - File with value of current moment & name of systabIO
 
-                        fileBw = new BufferedWriter(new FileWriter(stepFileCurr));
-                        fileBw.write(endResult);
-                        fileBw.newLine();
+
 
                     } catch (InterruptedException | ExecutionException e) {
                         e.printStackTrace();
                         return "CompletionService of SystabIO process Exception";
                     }
                 }
+
+                listTodo.delete(); // Delete the file to reset the list and write the remain steps
+                completedStep.delete(); // Delete the file to reset the list and write the remain steps
+
+                // First write all the completed steps
+                for (String step: completedList){
+                    fileCompletedBw.write(step + " " + completed);
+                    fileCompletedBw.newLine();
+                }
+                // Then all the undone steps
+                for (String step: stepList){
+                    // Write in the completed file
+                    fileCompletedBw.write(step + " Undone");
+                    fileCompletedBw.newLine();
+                    // Write in the todosteps , the next time it read only the remaining steps
+                    fileTodoBw.write(step);
+                    fileTodoBw.newLine();
+                }
+
             } catch (IOException e) {
                 e.printStackTrace();
                 System.out.println("Process IO Error");
-                return "Read error" + "\n"; // Don't change , this return stops the flow !
+                return "Read error IO" + "\n"; // Don't change , this return stops the flow !
 
             } finally { // Maybe something better later on ?
                 reading = false; // Finish to read all
@@ -396,7 +453,7 @@ public class SystabIO {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                if (fileTodoBw != null) try {
+                if (fileTodoBr != null) try {
                     fileBr.close();
                 } catch (IOException e) {
                     e.printStackTrace();
